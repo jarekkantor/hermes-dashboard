@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hermes Dashboard — Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0c1222; }
+        .glass {
+            background: rgba(17, 26, 46, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        .glow-input:focus {
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+            border-color: rgba(56, 189, 248, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+    <div class="glass rounded-2xl p-10 w-full max-w-sm text-center">
+        <div class="text-4xl mb-2">⚕</div>
+        <h1 class="text-xl font-bold text-white mb-1">Hermes Dashboard</h1>
+        <p class="text-gray-400 text-sm mb-8">Enter access code to continue</p>
+
+        {% if error %}
+        <div class="bg-red-900 bg-opacity-40 border border-red-700 text-red-300 text-sm rounded-lg p-3 mb-6">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/login">
+            <input
+                type="password"
+                name="code"
+                placeholder="Access code"
+                autofocus
+                required
+                class="glow-input w-full bg-white/[0.03] border border-white/10 text-white rounded-lg px-4 py-3 mb-4 focus:outline-none transition placeholder-gray-600"
+            >
+            <button
+                type="submit"
+                class="w-full bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 rounded-lg transition shadow-lg shadow-sky-900/30"
+            >
+                Unlock
+            </button>
+        </form>
+    </div>
+</body>
+</html>

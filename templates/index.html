@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hermes Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        surface: { DEFAULT: '#0c1222', 100: '#111a2e', 200: '#162032', 300: '#1a2740' },
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="bg-surface text-slate-200 min-h-screen">
+
+<!-- Sidebar Navigation -->
+<nav id="sidebar" class="sidebar">
+    <div class="sidebar-logo">⚕</div>
+    <a href="#overview" class="sidebar-link active" data-page="overview" title="Overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span class="sidebar-label">Overview</span>
+    </a>
+    <a href="#tokens" class="sidebar-link" data-page="tokens" title="Token Analysis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 20h16M6 20V14M10 20V8M14 20V12M18 20V4"/></svg>
+        <span class="sidebar-label">Tokens</span>
+    </a>
+    <a href="#usage" class="sidebar-link" data-page="usage" title="Usage & Cost">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10m-3-7.5c0-1.1 1.3-2 3-2s3 .9 3 2-1.3 2-3 2-3 .9-3 2 1.3 2 3 2 3-.9 3-2"/></svg>
+        <span class="sidebar-label">Usage</span>
+    </a>
+    <a href="#platforms" class="sidebar-link" data-page="platforms" title="Platforms">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span class="sidebar-label">Platforms</span>
+    </a>
+    <a href="#tools" class="sidebar-link" data-page="tools" title="Tools">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg>
+        <span class="sidebar-label">Tools</span>
+    </a>
+    <a href="#reliability" class="sidebar-link" data-page="reliability" title="Reliability">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span class="sidebar-label">Reliability</span>
+    </a>
+    <a href="#forensics" class="sidebar-link" data-page="forensics" title="Token Forensics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+        <span class="sidebar-label">Forensics</span>
+    </a>
+    <a href="#operations" class="sidebar-link" data-page="operations" title="Operations">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="6" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+        <span class="sidebar-label">Ops</span>
+    </a>
+</nav>
+
+<!-- Content Wrapper -->
+<div class="content-wrapper">
+
+    <!-- Alert Banner -->
+    <div id="alert-banner" class="hidden bg-red-950/80 border-b border-red-800 px-6 py-3 text-red-200 text-sm font-medium"></div>
+
+    <!-- Header -->
+    <header class="bg-surface-100 border-b border-white/5 px-6 py-4 flex items-center justify-between sticky top-0 z-50 backdrop-blur-sm">
+        <div class="flex items-center gap-3">
+            <span id="gateway-badge" class="text-xs px-2.5 py-1 rounded-full bg-white/5 text-slate-400">loading…</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <select id="days-select" class="bg-surface-200 border border-white/10 text-sm rounded-lg px-3 py-1.5 text-slate-300 focus:outline-none focus:ring-1 focus:ring-sky-500/50">
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="30" selected>30 days</option>
+                <option value="90">90 days</option>
+            </select>
+            <button id="refresh-btn" class="text-slate-400 hover:text-sky-400 text-sm transition">↻ Refresh</button>
+            <a href="/logout" class="text-slate-500 hover:text-slate-300 text-sm transition">Logout</a>
+        </div>
+    </header>
+
+    <main class="max-w-screen-2xl mx-auto px-6 py-6 space-y-6">
+
+        <!-- KPI Cards (always visible on all pages) -->
+        <section class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4" id="kpi-section">
+            <div class="card"><div class="card-label">Tokens Today</div><div class="card-value" id="kpi-tokens">—</div></div>
+            <div class="card"><div class="card-label">Cost Today</div><div class="card-value" id="kpi-cost-today">—</div></div>
+            <div class="card" id="kpi-yesterday"><div class="card-label">Yesterday</div><div class="card-value">—</div></div>
+            <div class="card" id="kpi-7d"><div class="card-label">Last 7 Days</div><div class="card-value">—</div></div>
+            <div class="card"><div class="card-label">Requests Today</div><div class="card-value" id="kpi-requests">—</div></div>
+            <div class="card"><div class="card-label">Sessions Today</div><div class="card-value" id="kpi-sessions">—</div></div>
+            <div class="card"><div class="card-label">Cost This Month</div><div class="card-value" id="kpi-cost-month">—</div></div>
+            <div class="card"><div class="card-label">Projected Monthly</div><div class="card-value" id="kpi-projected">—</div></div>
+        </section>
+
+        <!-- ═══════════ PAGE: Overview ═══════════ -->
+        <div data-page="overview">
+
+            <!-- Summary badges -->
+            <section class="mb-6">
+                <div class="badge-row" id="overview-badges"></div>
+            </section>
+
+            <!-- Daily Usage + Cost -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="panel">
+                    <h2 class="panel-title">Daily Token Usage by Model</h2>
+                    <div id="chart-daily-usage" class="chart-container"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Daily Cost Trend</h2>
+                    <div id="chart-daily-cost" class="chart-container"></div>
+                </div>
+            </section>
+
+            <!-- Model Distribution -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="panel">
+                    <h2 class="panel-title">Model Distribution</h2>
+                    <div id="chart-model-dist" class="chart-container"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ═══════════ PAGE: Tokens ═══════════ -->
+        <div data-page="tokens">
+
+            <!-- Cost Driver KPIs -->
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="token-kpis"></section>
+
+            <!-- Retry Waste Timeline + Tool Call Intensity -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="panel">
+                    <h2 class="panel-title">Retry Waste Timeline</h2>
+                    <div id="chart-retry-waste" class="chart-container"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Tool Call Intensity</h2>
+                    <div id="chart-tool-intensity" class="chart-container"></div>
+                </div>
+            </section>
+
+            <!-- Session Depth + Token Breakdown -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="panel lg:col-span-2">
+                    <h2 class="panel-title">Session Depth Ranking</h2>
+                    <div class="overflow-x-auto max-h-96" id="session-depth-table"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Token Breakdown Estimate</h2>
+                    <div id="chart-token-breakdown" class="chart-container"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ═══════════ PAGE: Usage ═══════════ -->
+        <div data-page="usage">
+
+            <!-- Context Depth + Output Distribution -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="panel">
+                    <h2 class="panel-title">Context Depth (Input Tokens)</h2>
+                    <div id="chart-context-depth" class="chart-container"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Response Complexity (Output Tokens)</h2>
+                    <div id="chart-output-dist" class="chart-container"></div>
+                </div>
+            </section>
+
+            <!-- Activity Heatmap -->
+            <section class="mb-6">
+                <div class="panel">
+                    <h2 class="panel-title">Activity Heatmap</h2>
+                    <div id="chart-heatmap" class="chart-container"></div>
+                </div>
+            </section>
+
+            <!-- Recent Requests + Top Cost Days -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="panel lg:col-span-2">
+                    <h2 class="panel-title">Recent API Requests</h2>
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="data-table" id="requests-table">
+                            <thead><tr>
+                                <th>Time</th><th>Model</th><th>In</th><th>Out</th><th>Cost</th><th>Latency</th><th>Status</th>
+                            </tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Top Cost Days</h2>
+                    <div id="top-cost-days" class="overflow-auto max-h-96"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ═══════════ PAGE: Platforms ═══════════ -->
+        <div data-page="platforms">
+
+            <!-- Platform Analytics -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="panel lg:col-span-2">
+                    <h2 class="panel-title">Usage by Platform</h2>
+                    <div id="chart-platform-usage" class="chart-container"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Platform Summary</h2>
+                    <div id="platform-summary" class="overflow-auto max-h-96"></div>
+                </div>
+            </section>
+
+            <!-- Recent Sessions -->
+            <section>
+                <div class="panel">
+                    <h2 class="panel-title">Recent Sessions</h2>
+                    <div class="overflow-auto max-h-72" id="recent-sessions"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ═══════════ PAGE: Tools ═══════════ -->
+        <div data-page="tools">
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="panel">
+                    <h2 class="panel-title">Top Tools by Usage</h2>
+                    <div id="chart-tool-usage" class="chart-container"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Tool Categories Over Time</h2>
+                    <div id="chart-tool-timeline" class="chart-container"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ═══════════ PAGE: Reliability ═══════════ -->
+        <div data-page="reliability">
+
+            <!-- Error Rate + Cache -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="panel lg:col-span-2">
+                    <h2 class="panel-title">Error Rate & Rate Limits</h2>
+                    <div id="chart-errors" class="chart-container"></div>
+                </div>
+                <div class="panel space-y-4">
+                    <h2 class="panel-title">Cache Efficiency</h2>
+                    <div id="cache-efficiency" class="text-center pt-4"></div>
+                    <h2 class="panel-title mt-6">Error Breakdown</h2>
+                    <div id="error-breakdown" class="overflow-auto max-h-40"></div>
+                </div>
+            </section>
+
+            <!-- Recent Error Log -->
+            <section>
+                <div class="panel">
+                    <h2 class="panel-title">Recent Error Log</h2>
+                    <div class="overflow-auto max-h-36 text-xs font-mono text-red-400" id="error-log"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ═══════════ PAGE: Token Forensics ═══════════ -->
+        <div data-page="forensics">
+
+            <!-- Fixed Overhead KPIs -->
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="forensics-kpis"></section>
+
+            <!-- Per-Request Breakdown + Tool Cost -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="panel">
+                    <h2 class="panel-title">Per-Request Token Breakdown</h2>
+                    <div id="chart-request-breakdown" class="chart-container"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Tool Definition Costs (tokens per request)</h2>
+                    <div id="chart-tool-costs" class="chart-container"></div>
+                </div>
+            </section>
+
+            <!-- Cost Composition + Session Estimates -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div class="panel">
+                    <h2 class="panel-title">Where Tokens Go (avg request)</h2>
+                    <div id="chart-cost-composition" class="chart-container"></div>
+                </div>
+                <div class="panel lg:col-span-2">
+                    <h2 class="panel-title">Session Token Estimates</h2>
+                    <div class="overflow-x-auto max-h-96" id="session-estimates-table"></div>
+                </div>
+            </section>
+
+            <!-- Findings -->
+            <section>
+                <div class="panel">
+                    <h2 class="panel-title">Key Findings</h2>
+                    <div id="forensics-findings" class="space-y-2 text-sm"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ═══════════ PAGE: Operations ═══════════ -->
+        <div data-page="operations">
+
+            <!-- Cron Jobs + Uptime -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="panel">
+                    <h2 class="panel-title">Cron Jobs</h2>
+                    <div id="cron-jobs" class="overflow-auto max-h-64"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Gateway Uptime (7 days)</h2>
+                    <div id="chart-uptime" class="chart-container"></div>
+                </div>
+            </section>
+
+            <!-- System Health + Skills -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="panel">
+                    <h2 class="panel-title">System Resources</h2>
+                    <div id="system-resources" class="space-y-3 pt-2"></div>
+                </div>
+                <div class="panel">
+                    <h2 class="panel-title">Installed Skills</h2>
+                    <div class="overflow-auto max-h-72" id="skills-list"></div>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <footer class="border-t border-white/5 px-6 py-3 text-center text-xs text-slate-500">
+        Hermes Agent Dashboard · Data refreshes every 60s
+    </footer>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

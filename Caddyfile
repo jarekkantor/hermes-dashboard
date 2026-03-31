@@ -1,0 +1,15 @@
+dashboard.YOUR_DOMAIN.com {
+    reverse_proxy localhost:3333
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    log {
+        output file /var/log/caddy/dashboard.log
+        format console
+    }
+}

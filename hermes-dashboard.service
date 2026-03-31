@@ -1,0 +1,17 @@
+[Unit]
+Description=Hermes Agent Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/hermes-dashboard
+ExecStart=/root/hermes-dashboard/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 3333 --workers 1
+Restart=always
+RestartSec=5
+Environment=HOME=/root
+MemoryMax=512M
+
+[Install]
+WantedBy=multi-user.target
