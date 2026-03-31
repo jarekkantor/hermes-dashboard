@@ -36,6 +36,34 @@ Analytics and cost-monitoring dashboard for [Hermes Agent](https://github.com/No
 
 ---
 
+## Screenshots
+
+### Overview — KPIs, Daily Usage, Model Distribution
+![Overview](docs/screenshots/overview.png)
+
+### Token Analysis — Retry Waste, Tool Intensity, Session Depth
+![Token Analysis](docs/screenshots/token-analysis.png)
+
+### Token Forensics — Per-Request Breakdown, Tool Definition Costs
+![Forensics](docs/screenshots/forensics.png)
+
+### Usage — Context Depth, Response Complexity, Activity Heatmap
+![Usage](docs/screenshots/usage.png)
+
+### Platforms — Per-Gateway Breakdown, Recent Sessions
+![Platforms](docs/screenshots/platforms.png)
+
+### Tools — Usage Ranking, Category Trends
+![Tools](docs/screenshots/tools.png)
+
+### Reliability — Error Rates, Cache Efficiency, Error Log
+![Reliability](docs/screenshots/reliability.png)
+
+### Operations — Cron Jobs, Gateway Uptime, System Resources, Skills
+![Operations](docs/screenshots/operations.png)
+
+---
+
 ## How It Works
 
 The dashboard sits between Hermes and the Anthropic API as a **transparent proxy**. Hermes sends API requests to `localhost:3333` instead of `api.anthropic.com`. The proxy forwards every request unchanged, captures the response (including streaming SSE), and logs usage data to a local SQLite database. Hermes doesn't notice any difference.
