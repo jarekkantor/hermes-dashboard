@@ -10,16 +10,19 @@ import httpx
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from .config import ANTHROPIC_API_BASE
+from .config import get_api_base
 from .database import log_request
 
 router = APIRouter()
 
 FORWARD_HEADERS = {
     "x-api-key",
+    "authorization",
     "anthropic-version",
     "anthropic-beta",
     "content-type",
+    "openai-organization",
+    "openai-project",
 }
 
 _client: httpx.AsyncClient | None = None
@@ -59,7 +62,7 @@ def _extract_usage(event: dict, usage_data: dict) -> None:
 @router.api_route("/v1/{path:path}", methods=["POST", "GET", "PUT", "DELETE"])
 async def proxy_anthropic(request: Request, path: str):
     start = time.monotonic()
-    target_url = f"{ANTHROPIC_API_BASE}/v1/{path}"
+    target_url = f"{get_api_base()}/v1/{path}"
     body = await request.body()
     headers = _filter_headers(dict(request.headers))
     client = await get_client()
@@ -103,6 +106,7 @@ async def _handle_non_streaming(
                 model=model, input_tokens=0, output_tokens=0,
                 latency_ms=latency, status_code=502,
                 error_type=type(e).__name__,
+                provider="anthropic",
             )
         return JSONResponse(
             {"error": {"type": "proxy_error", "message": str(e)}},
@@ -126,12 +130,14 @@ async def _handle_non_streaming(
                 is_streaming=False,
                 stop_reason=data.get("stop_reason"),
                 error_type=data.get("error", {}).get("type") if resp.status_code >= 400 else None,
+                provider="anthropic",
             )
         except Exception:
             await log_request(
                 model=model, input_tokens=0, output_tokens=0,
                 latency_ms=latency, status_code=resp.status_code,
                 error_type="parse_error",
+                provider="anthropic",
             )
 
     resp_headers = {
@@ -215,6 +221,7 @@ async def _handle_streaming(
                 is_streaming=True,
                 stop_reason=stop_reason,
                 error_type=error_type,
+                provider="anthropic",
             )
 
     return StreamingResponse(

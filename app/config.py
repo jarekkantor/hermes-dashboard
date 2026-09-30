@@ -19,4 +19,13 @@ ALERT_MONTHLY_USD: float = float(os.getenv("ALERT_MONTHLY_USD", "300"))
 
 SESSION_TTL_DAYS: int = int(os.getenv("SESSION_TTL_DAYS", "7"))
 
-ANTHROPIC_API_BASE = "https://api.anthropic.com"
+
+def _reload_env() -> None:
+    """Re-read .env into os.environ so live edits take effect."""
+    load_dotenv(_env_path, override=True)
+
+
+def get_api_base() -> str:
+    """Base URL for the upstream API. Defaults to Anthropic."""
+    _reload_env()
+    return os.getenv("API_BASE", "https://api.anthropic.com")
