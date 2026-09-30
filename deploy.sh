@@ -34,6 +34,7 @@ ALERT_DAILY_USD=25
 ALERT_WEEKLY_USD=100
 ALERT_MONTHLY_USD=300
 SESSION_TTL_DAYS=7
+API_BASE=http://localhost:3333
 EOF"
 else
     echo "[3/7] Checking .env..."

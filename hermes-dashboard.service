@@ -6,11 +6,11 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/root/hermes-dashboard
-ExecStart=/root/hermes-dashboard/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 3333 --workers 1
+WorkingDirectory=/home/hermes/hermes-dashboard
+ExecStart=/home/hermes/hermes-dashboard/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 3333 --workers 1
 Restart=always
 RestartSec=5
-Environment=HOME=/root
+Environment=HOME=/home/hermes
 MemoryMax=512M
 
 [Install]

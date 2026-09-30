@@ -14,7 +14,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from . import analytics, system_health
 from .auth import is_authenticated, router as auth_router
 from .database import close_dbs, init_dashboard_db, init_state_db
-from .proxy import close_client, router as proxy_router
+from .proxy import close_client as close_anthropic_client, router as proxy_router
+from .openai_proxy import close_client as close_openai_client, router as openai_proxy_router
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +26,8 @@ async def lifespan(app: FastAPI):
     await init_state_db()
     yield
     await close_dbs()
-    await close_client()
+    await close_anthropic_client()
+    await close_openai_client()
 
 
 app = FastAPI(title="Hermes Dashboard", lifespan=lifespan)
@@ -58,8 +60,9 @@ app.add_middleware(AuthMiddleware)
 
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
-app.include_router(auth_router)
+app.include_router(openai_proxy_router)
 app.include_router(proxy_router)
+app.include_router(auth_router)
 
 
 @app.get("/health")

@@ -6,6 +6,9 @@ const MODEL_COLORS = {
     'claude-haiku': '#fde68a',
     'claude-sonnet': '#67e8f9',
     'claude-opus': '#c084fc',
+    'deepseek-v4.1-flash': '#34d399',
+    'minimax-m2.7': '#a3e635',
+    'kimi-k2.6': '#fb923c',
 };
 
 function modelColor(name) {
@@ -36,13 +39,14 @@ function fmt(n) {
     return String(n);
 }
 function usd(n) { return '$' + Number(n).toFixed(2); }
+function usd6(n) { return '$' + Number(n).toFixed(6); }
 function shortModel(m) { return m.replace(/^claude-/,'').replace(/-2025\d+$/,''); }
 function shortTime(ts) {
     if (!ts) return '—';
     const hasTZ = /Z|[+-]\d{2}:\d{2}$/.test(ts);
     const d = new Date(ts.includes('T') && !hasTZ ? ts + 'Z' : ts);
     if (isNaN(d.getTime())) return ts;
-    return d.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    return d.toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
 }
 
 const charts = {};
@@ -534,7 +538,7 @@ async function loadRecentRequests() {
             <td>${shortModel(r.model)}</td>
             <td>${fmt(r.input_tokens)}</td>
             <td>${fmt(r.output_tokens)}</td>
-            <td>${usd(r.cost_usd)}</td>
+            <td>${usd6(r.cost_usd)}</td>
             <td>${(r.latency_ms/1000).toFixed(1)}s</td>
             <td><span class="badge ${statusClass}">${r.status_code}</span></td>
         </tr>`;

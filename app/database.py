@@ -12,7 +12,7 @@ from typing import Any, AsyncIterator
 import aiosqlite
 
 from .config import DASHBOARD_DB, STATE_DB
-from .pricing import calculate_cost
+from .pricing import calculate_cost, _detect_provider
 
 DASHBOARD_SCHEMA = """
 CREATE TABLE IF NOT EXISTS api_requests (
@@ -28,13 +28,20 @@ CREATE TABLE IF NOT EXISTS api_requests (
     status_code INTEGER NOT NULL DEFAULT 200,
     is_streaming INTEGER NOT NULL DEFAULT 0,
     stop_reason TEXT,
-    error_type  TEXT
+    error_type  TEXT,
+    provider    TEXT NOT NULL DEFAULT 'anthropic'
 );
 
 CREATE INDEX IF NOT EXISTS idx_requests_ts ON api_requests(ts);
 CREATE INDEX IF NOT EXISTS idx_requests_model ON api_requests(model);
 CREATE INDEX IF NOT EXISTS idx_requests_status ON api_requests(status_code);
+CREATE INDEX IF NOT EXISTS idx_requests_provider ON api_requests(provider);
 """
+
+# Migration: add provider column to existing tables
+MIGRATIONS: list[str] = [
+    "ALTER TABLE api_requests ADD COLUMN provider TEXT NOT NULL DEFAULT 'anthropic'",
+]
 
 
 _dashboard_db: aiosqlite.Connection | None = None
@@ -50,6 +57,12 @@ async def init_dashboard_db() -> None:
     await _dashboard_db.executescript(DASHBOARD_SCHEMA)
     await _dashboard_db.execute("PRAGMA journal_mode=WAL")
     await _dashboard_db.execute("PRAGMA busy_timeout=5000")
+    # Run migrations (silently skip if column already exists)
+    for migration in MIGRATIONS:
+        try:
+            await _dashboard_db.execute(migration)
+        except aiosqlite.OperationalError:
+            pass  # column already exists
     await _dashboard_db.commit()
 
 
@@ -92,19 +105,22 @@ async def log_request(
     is_streaming: bool = False,
     stop_reason: str | None = None,
     error_type: str | None = None,
+    provider: str | None = None,
 ) -> None:
     db = get_dashboard_db()
+    if provider is None:
+        provider = _detect_provider(model)
     cost = calculate_cost(model, input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens)
     await db.execute(
         """INSERT INTO api_requests
            (model, input_tokens, output_tokens, cache_creation_tokens,
             cache_read_tokens, cost_usd, latency_ms, status_code,
-            is_streaming, stop_reason, error_type)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            is_streaming, stop_reason, error_type, provider)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
             model, input_tokens, output_tokens, cache_creation_tokens,
             cache_read_tokens, cost, latency_ms, status_code,
-            1 if is_streaming else 0, stop_reason, error_type,
+            1 if is_streaming else 0, stop_reason, error_type, provider,
         ),
     )
     await db.commit()
